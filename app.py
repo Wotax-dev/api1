@@ -1,3 +1,4 @@
+
 from flask import Flask, request, jsonify
 import asyncio, json, binascii, requests, aiohttp, urllib3
 from Crypto.Cipher import AES
@@ -24,7 +25,18 @@ app = Flask(__name__)
 
 def load_tokens(server):
     files = FILES
-    return json.load(open(f"tokens/{files.get(server,'token_bd.json')}"))
+    file_path = f"tokens/{files.get(server,'token_bd.json')}"
+    try:
+        with open(file_path, 'r') as f:
+            tokens = json.load(f)
+            print(f"Loaded {len(tokens)} tokens for {server} from {file_path}")
+            return tokens
+    except FileNotFoundError:
+        print(f"Token file not found: {file_path}")
+        return []
+    except Exception as e:
+        print(f"Error loading tokens: {e}")
+        return []
 
 def get_headers(token):
     return {
@@ -59,7 +71,20 @@ async def send(token, url, data):
 async def multi(uid, server, url):
     enc = encrypt_message(create_like(uid, server))
     tokens = load_tokens(server)
-    return await asyncio.gather(*[send(tokens[i%len(tokens)]['token'], url, enc) for i in range(105)])
+    if not tokens:
+        print(f"No tokens available for {server}")
+        return []
+    
+    # Use more tokens for better like results - 150 instead of 105
+    num_likes = min(150, len(tokens) * 2)  # Don't exceed available tokens
+    print(f"Sending {num_likes} likes using {len(tokens)} tokens for {server}")
+    
+    tasks = []
+    for i in range(num_likes):
+        token = tokens[i % len(tokens)]['token']
+        tasks.append(send(token, url, enc))
+    
+    return await asyncio.gather(*tasks, return_exceptions=True)
 
 def get_info(enc, server, token):
     urls =URLS_INFO
