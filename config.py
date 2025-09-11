@@ -1,6 +1,7 @@
 
 
 URLS_LIKE = {"IND":"https://client.ind.freefiremobile.com/LikeProfile",
+            "BD":"https://client.ind.freefiremobile.com/LikeProfile",
             "BR":"https://client.us.freefiremobile.com/LikeProfile",
             "US":"https://client.us.freefiremobile.com/LikeProfile",
             "SAC":"https://client.us.freefiremobile.com/LikeProfile",
@@ -8,6 +9,7 @@ URLS_LIKE = {"IND":"https://client.ind.freefiremobile.com/LikeProfile",
 
 
 URLS_INFO = {"IND":"https://client.ind.freefiremobile.com/GetPlayerPersonalShow",
+            "BD":"https://client.ind.freefiremobile.com/GetPlayerPersonalShow",
             "BR":"https://client.us.freefiremobile.com/GetPlayerPersonalShow",
             "US":"https://client.us.freefiremobile.com/GetPlayerPersonalShow",
             "SAC":"https://client.us.freefiremobile.com/GetPlayerPersonalShow",
@@ -16,6 +18,7 @@ URLS_INFO = {"IND":"https://client.ind.freefiremobile.com/GetPlayerPersonalShow"
 
 
 FILES = {"IND":"token_ind.json",
+             "BD":"token_bd.json",
              "BR":"token_br.json",
              "US":"token_br.json",
              "SAC":"token_br.json",
