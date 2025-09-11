@@ -6,6 +6,10 @@ from google.protobuf.json_format import MessageToJson
 from google.protobuf.message import DecodeError
 import like_pb2, like_count_pb2, uid_generator_pb2
 from config import URLS_INFO ,URLS_LIKE,FILES
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'MANAGE'))
+from token_manager import increment_token_usage
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 app = Flask(__name__)
 
@@ -70,10 +74,18 @@ def like():
     asyncio.run(multi(uid, server, urls.get(server,"https://clientbp.ggblueshark.com/LikeProfile")))
     after = json.loads(MessageToJson(get_info(enc, server, tok)))
     after_like = int(after.get('AccountInfo',{}).get('Likes',0))
+    
+    # Increment token usage if likes were successfully added
+    if after_like > before_like:
+        try:
+            increment_token_usage(server)
+        except:
+            pass  # Don't break API if token tracking fails
+    
     return jsonify({
         
         
-        "credits":"Wotax god",
+        "credits":"Discord: @Wotax_exe.",
         "likes_added": after_like - before_like,
         "likes_before": before_like,
         "likes_after": after_like,
