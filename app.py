@@ -6,6 +6,19 @@ from google.protobuf.json_format import MessageToJson
 from google.protobuf.message import DecodeError
 import like_pb2, like_count_pb2, uid_generator_pb2
 from config import URLS_INFO ,URLS_LIKE,FILES
+import sys
+import os
+
+# Add the MANAGE directory to the path so we can import token_manager
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'MANAGE'))
+
+try:
+    from token_manager import increment_token_usage
+except ImportError:
+    # If import fails, create a dummy function so the app doesn't crash
+    def increment_token_usage(zone):
+        print(f"Token usage tracking not available for {zone}")
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 app = Flask(__name__)
 
@@ -70,31 +83,25 @@ def like():
     asyncio.run(multi(uid, server, urls.get(server,"https://clientbp.ggblueshark.com/LikeProfile")))
     after = json.loads(MessageToJson(get_info(enc, server, tok)))
     after_like = int(after.get('AccountInfo',{}).get('Likes',0))
+    
+    # Increment token usage if likes were successfully added
+    likes_added = after_like - before_like
+    if likes_added > 0:
+        try:
+            increment_token_usage(server.lower())
+            print(f"Incremented token usage for {server}: {likes_added} likes added")
+        except Exception as e:
+            print(f"Token tracking error: {e}")
+    
     return jsonify({
-        
-        
         "credits":"Discord: @Wotax_exe.",
-        "likes_added": after_like - before_like,
+        "likes_added": likes_added,
         "likes_before": before_like,
         "likes_after": after_like,
         "player": after.get('AccountInfo',{}).get('PlayerNickname',''),
         "uid": after.get('AccountInfo',{}).get('UID',0),
-        "status": 1 if after_like-before_like else 2,
-        
-       
+        "status": 1 if likes_added > 0 else 2,
     })
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
-
-
-
-
-
-
-
-
-
-    
-#URL_ENPOINTS ="http://127.0.0.1:5000/like?uid=13002831333&server=me"
-#credits : "https://great.thug4ff.com/"
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
